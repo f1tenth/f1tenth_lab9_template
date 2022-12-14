@@ -65,18 +65,23 @@ We'll use first order Taylor expansion of the two variable function around some 
 $$
 z_{t+1}=z_t + f(z_t, u_t)dt
 $$
+
 $$
 z_{t+1}=z_t + (f(\bar{z_t}, \bar{u_t}) + f'_z(\bar{z_t}, \bar{u_t})(z_t - \bar{z_t}) + f'_u(\bar{z_t}, \bar{u_t})(u_t - \bar{u_t}))dt
 $$
+
 $$
 z_{t+1}=z_t + (f(\bar{z_t}, \bar{u_t}) + A'(z_t - \bar{z_t}) + B'(u_t - \bar{u_t}))dt
 $$
+
 $$
 z_{t+1}=z_t + (f(\bar{z_t}, \bar{u_t}) + A'z_t - A'\bar{z_t} + B'u_t - B'\bar{u_t})dt
 $$
+
 $$
 z_{t+1}=(I+dtA')z_t + dtB'u_t + (f(\bar{z_t}, \bar{u_t})- A'\bar{z_t} - B'\bar{u_t})dt
 $$
+
 $$
 z_{t+1} = Az_t + Bu_t + C
 $$
