@@ -13,6 +13,7 @@ Before starting the lab, make sure you understand the formulation of the MPC pro
 ### a. State and Dynamics Model
 
 We use a kinematic model of the vehicle. The state space is $z=[x, y, \theta, v]$. And the input vector is $u=[a, \delta]$ where $a$ is acceleration and $\delta$ is steering angle. The kinematic model ODEs are:
+
 $$
 \dot{x}=v\cos(\theta)
 $$
