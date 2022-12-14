@@ -14,15 +14,27 @@ Before starting the lab, make sure you understand the formulation of the MPC pro
 
 We use a kinematic model of the vehicle. The state space is $z=[x, y, \theta, v]$. And the input vector is $u=[a, \delta]$ where $a$ is acceleration and $\delta$ is steering angle. The kinematic model ODEs are:
 $$
-\dot{x}=v\cos(\theta) \\
-\dot{y}=v\sin(\theta) \\
-\dot{v}=a \\
+\dot{x}=v\cos(\theta)
+$$
+
+$$
+\dot{y}=v\sin(\theta)
+$$
+
+$$
+\dot{v}=a
+$$
+
+$$
 \dot{\theta}=\frac{v\tan(\delta)}{L}
 $$
+
 Where $L$ is the wheelbase of the vehicle. In summary, we can write the ODEs as:
+
 $$
 \dot{z}=\frac{\partial}{z}z=f(z, u)=A'z+B'u
 $$
+
 You can write out the matrix representation of $A'$ and $B'$. We highly recommend writing out the system of equation in the matrix form.
 
 ### b. Objective Function
