@@ -86,20 +86,36 @@ class MPC(Node):
 
     def pose_callback(self, pose_msg):
         pass
+        # TODO: extract pose from ROS msg
+        vehicle_state = None
+
         # TODO: Calculate the next reference trajectory for the next T steps
-        #       with current vehicle pose
+        #       with current vehicle pose.
+        #       ref_x, ref_y, ref_yaw, ref_v are columns of self.waypoints
+        ref_path = self.calc_ref_trajectory(self, vehicle_state, ref_x, ref_y, ref_yaw, ref_v)
+        x0 = [vehicle_state.x, vehicle_state.y, vehicle_state.v, vehicle_state.yaw]
 
-        # TODO: call motion prediction fuction for the next T steps
+        # TODO: solve the MPC control problem
+        (
+            self.oa,
+            self.odelta_v,
+            ox,
+            oy,
+            oyaw,
+            ov,
+            state_predict,
+        ) = self.linear_mpc_control(ref_path, x0, self.oa, self.odelta_v)
 
-        # TODO: solve current iteration of optimization with reference trajectory
-
-        # TODO: publish drive message, don't forget to limit the steering angle.
+        # TODO: publish drive message.
+        steer_output = self.odelta_v[0]
+        speed_output = vehicle_state.v + self.oa[0] * self.config.DTK
 
     def mpc_prob_init(self):
         """
         Create MPC quadratic optimization problem using cvxpy, solver: OSQP
         Will be solved every iteration for control.
         More MPC problem information here: https://osqp.org/docs/examples/mpc.html
+        More QP example in CVXPY here: https://www.cvxpy.org/examples/basic/quadratic_program.html
         """
         # Initialize and create vectors for the optimization problem
         # Vehicle State Vector
@@ -154,7 +170,7 @@ class MPC(Node):
         # init path to zeros
         path_predict = np.zeros((self.config.NXK, self.config.TK + 1))
         for t in range(self.config.TK):
-            A, B, C = self.get_kinematic_model_matrix(
+            A, B, C = self.get_model_matrix(
                 path_predict[2, t], path_predict[3, t], 0.0
             )
             A_block.append(A)
@@ -193,25 +209,25 @@ class MPC(Node):
         # No need for sparse matrices for C as most values are parameters
         self.Ck_ = cvxpy.Parameter(C_block.shape)
         self.Ck_.value = C_block
-        # Add dynamics constraints to the optimization problem
-        constraints += [
-            cvxpy.vec(self.xk[:, 1:])
-            == self.Ak_ @ cvxpy.vec(self.xk[:, :-1])
-            + self.Bk_ @ cvxpy.vec(self.uk)
-            + (self.Ck_)
-        ]
 
-        constraints += [
-            cvxpy.abs(cvxpy.diff(self.uk[1, :]))
-            <= self.config.MAX_DSTEER * self.config.DTK
-        ]
+        # -------------------------------------------------------------
+        # TODO: Constraint part 1:
+        #       Add dynamics constraints to the optimization problem
+        #       This constraint should be based on a few variables:
+        #       self.xk, self.Ak_, self.Bk_, self.uk, and self.Ck_
+        
+        # TODO: Constraint part 2:
+        #       Add constraints on steering, change in steering angle
+        #       cannot exceed steering angle speed limit. Should be based on:
+        #       self.uk, self.config.MAX_DSTEER, self.config.DTK
 
-        # Create the constraints (upper and lower bounds of states and inputs) for the optimization problem
-        constraints += [self.xk[:, 0] == self.x0k]
-        constraints += [self.xk[2, :] <= self.config.MAX_SPEED]
-        constraints += [self.xk[2, :] >= self.config.MIN_SPEED]
-        constraints += [cvxpy.abs(self.uk[0, :]) <= self.config.MAX_ACCEL]
-        constraints += [cvxpy.abs(self.uk[1, :]) <= self.config.MAX_STEER]
+        # TODO: Constraint part 3:
+        #       Add constraints on upper and lower bounds of states and inputs
+        #       and initial state constraint, should be based on:
+        #       self.xk, self.x0k, self.config.MAX_SPEED, self.config.MIN_SPEED,
+        #       self.uk, self.config.MAX_ACCEL, self.config.MAX_STEER
+        
+        # -------------------------------------------------------------
 
         # Create the optimization problem in CVXPY and setup the workspace
         # Optimization goal: minimize the objective function
@@ -270,7 +286,7 @@ class MPC(Node):
 
         state = State(x=x0[0], y=x0[1], yaw=x0[3], v=x0[2])
         for (ai, di, i) in zip(oa, od, range(1, self.config.TK + 1)):
-            state = self.update_state_kinematic(state, ai, di)
+            state = self.update_state(state, ai, di)
             path_predict[0, i] = state.x
             path_predict[1, i] = state.y
             path_predict[2, i] = state.v
@@ -385,9 +401,8 @@ class MPC(Node):
         MPC contorl with updating operational point iteraitvely
         :param ref_path: reference trajectory in T steps
         :param x0: initial state vector
-        :param a_old: acceleration of T steps of last time
-        :param delta_old: delta of T steps of last time
-        :return: acceleration and delta strategy based on current information
+        :param oa: acceleration of T steps of last time
+        :param od: delta of T steps of last time
         """
 
         if oa is None or od is None:
@@ -413,103 +428,3 @@ def main(args=None):
 
     mpc_node.destroy_node()
     rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()
-
-
-
-
-
-    def plan(self, states, waypoints=None):
-        """
-        Planner plan function overload for Pure Pursuit, returns acutation based on current state
-
-        Args:
-            pose_x (float): current vehicle x position
-            pose_y (float): current vehicle y position
-            pose_theta (float): current vehicle heading angle
-            lookahead_distance (float): lookahead distance to find next waypoint to track
-            waypoints (numpy.ndarray [N x 4], optional): list of dynamic waypoints to track, columns are [x, y, velocity, heading]
-
-        Returns:
-            speed (float): commanded vehicle longitudinal velocity
-            steering_angle (float):  commanded vehicle steering angle
-        """
-        if waypoints is not None:
-            if waypoints.shape[1] < 3 or len(waypoints.shape) != 2:
-                raise ValueError("Waypoints needs to be a (Nxm), m >= 3, numpy array!")
-            self.waypoints = waypoints
-        else:
-            if self.waypoints is None:
-                raise ValueError(
-                    "Please set waypoints to track during planner instantiation or when calling plan()"
-                )
-        vehicle_state = State(
-            x=states[0],
-            y=states[1],
-            delta=states[2],
-            v=states[3],
-            yaw=states[4],
-            yawrate=states[5],
-            beta=states[6],
-        )
-
-        (
-            speed,
-            steering_angle,
-            mpc_ref_path_x,
-            mpc_ref_path_y,
-            mpc_pred_x,
-            mpc_pred_y,
-            mpc_ox,
-            mpc_oy,
-        ) = self.MPC_Control_kinematic(vehicle_state, self.waypoints)
-
-        return steering_angle, speed
-
-
-    def MPC_Control_kinematic(self, vehicle_state, path):
-        # Extract information about the trajectory that needs to be followed
-        cx = path[0]  # Trajectory x-Position
-        cy = path[1]  # Trajectory y-Position
-        cyaw = path[2]  # Trajectory Heading angle
-        sp = path[3]  # Trajectory Velocity
-
-        # Calculate the next reference trajectory for the next T steps:: [x, y, v, yaw]
-        ref_path = self.calc_ref_trajectory_kinematic(vehicle_state, cx, cy, cyaw, sp)
-        # Create state vector based on current vehicle state: x-position, y-position,  velocity, heading
-        x0 = [vehicle_state.x, vehicle_state.y, vehicle_state.v, vehicle_state.yaw]
-
-        # Solve the Linear MPC Control problem
-        (
-            self.oa,
-            self.odelta_v,
-            ox,
-            oy,
-            oyaw,
-            ov,
-            state_predict,
-        ) = self.linear_mpc_control_kinematic(ref_path, x0, self.oa, self.odelta_v)
-
-        if self.odelta_v is not None:
-            di, ai = self.odelta_v[0], self.oa[0]
-
-        # Create the final steer and speed parameter that need to be sent out
-
-        # Steering Output: First entry of the MPC steering angle output vector in degree
-        steer_output = self.odelta_v[0]
-
-        speed_output = vehicle_state.v + self.oa[0] * self.config.DTK
-
-        return (
-            speed_output,
-            steer_output,
-            ref_path[0],
-            ref_path[1],
-            state_predict[0],
-            state_predict[1],
-            ox,
-            oy,
-        )

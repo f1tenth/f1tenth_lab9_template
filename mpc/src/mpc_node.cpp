@@ -16,36 +16,30 @@
 
 using namespace std;
 
-class PurePursuit : public rclcpp::Node
+class MPC : public rclcpp::Node
 {
-    // Implement PurePursuit
+    // Implement MPC
     // This is just a template, you are free to implement your own node!
 
 private:
 
 public:
-    PurePursuit() : Node("pure_pursuit_node")
+    MPC() : Node("mpc_node")
     {
         // TODO: create ROS subscribers and publishers
     }
 
     void pose_callback(const geometry_msgs::msg::PoseStamped::ConstPtr &pose_msg)
     {
-        // TODO: find the current waypoint to track using methods mentioned in lecture
 
-        // TODO: transform goal point to vehicle frame of reference
-
-        // TODO: calculate curvature/steering angle
-
-        // TODO: publish drive message, don't forget to limit the steering angle.
     }
 
-    ~PurePursuit() {}
+    ~MPC() {}
 };
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<PurePursuit>());
+    rclcpp::spin(std::make_shared<MPC>());
     rclcpp::shutdown();
     return 0;
 }
