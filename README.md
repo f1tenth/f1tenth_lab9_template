@@ -107,18 +107,19 @@ You'll need to create a reference trajectory that has velocity attached to each 
 
 ## V. Setting up the Optimization
 
-In Python, we'll be using CVXPY to set up the optimization problem with the OSQP solver. Most of the problem set up and potential code optimization that speeds up the MPC are already done for you. Your task is to fill in the objective function and the constraints for the MPC. Note that the template of this lab is only available in Python. But if you're comfortable with creating an MPC from scratch in C++, you're welcome to do so but the TAs won't be able to help as much.
+In Python, we'll be using CVXPY to set up the optimization problem with the OSQP solver. Most of the problem set up and potential code optimization that speeds up the MPC are already done for you. Your first task is to fill in the objective function and the constraints for the MPC in the function `mpc_prob_init()`. The second task is to fill in the `pose_callback`. You can find missing parts in the code by searching for `TODO` tags. Note that the template of this lab is only available in Python. But if you're comfortable with creating an MPC from scratch in C++, you're welcome to do so but the TAs won't be able to help as much.
 
+## VI. Visualization
+
+It might be helpful to visualize the current selected segment of reference path and the predicted trajectory from MPC to debug.
 
 ## VII. Deliverables
 
-- **Deliverable 1**: Submit the map files (levine_2nd.pgm and levine_2nd.yaml) that you've made using `slam_toolbox`.
-- **Deliverable 2**: Commit your pure pursuit package to GitHub. Your commited code should run smoothly in simulation.
-- **Deliverable 3**: Submit a link to a video on YouTube showing the real car following waypoints in Levine hallway. Show a screen recording of rviz. 
+- **Deliverable 1**: Commit your mpc package to GitHub. Your commited code should run smoothly in simulation.
+- **Deliverable 2**: Submit a link to a video on YouTube showing the car tracking waypoints with MPC in Levine hallway in simulation. 
 
 ## VIII: Grading Rubric
 - Compilation: **10** Points
-- Running slam_toolbox and producing a map: **30** Points
-- Running particle_filter: **20** Points
-- Implementing pure pursuit: **30** Points
-- Video: **10** Points
+- Correct objectives and constraints: **50** Points
+- Working path tracker: **20** Points
+- Video: **20** Points
