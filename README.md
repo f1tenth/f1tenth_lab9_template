@@ -30,13 +30,13 @@ $$
 \dot{\theta}=\frac{v\tan(\delta)}{L}
 $$
 
-Where $L$ is the wheelbase of the vehicle. In summary, we can write the ODEs as:
+Where $L$ is the wheelbase of the vehicle. In summary, we can write the continuous ODEs as:
 
 $$
-\dot{z}=\frac{\partial}{\partial z}z=f(z, u)=A'z+B'u
+f(z, u)=A'z+B'u
 $$
 
-You can write out the matrix representation of $A'$ and $B'$. We highly recommend writing out the system of equation in the matrix form.
+Here $A'$ and $B'$ are the original continuous system matrices. In the last step, you'll discretize and linearize the system to get new system matrices $A$, $B$ and $C$. Note that you won't have to implement these in code but you can still write out the matrix representation of $A'$ and $B'$. We highly recommend writing out the system of equation in the matrix form.
 
 ### b. Objective Function
 
