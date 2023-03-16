@@ -33,7 +33,7 @@ $$
 Where $L$ is the wheelbase of the vehicle. In summary, we can write the ODEs as:
 
 $$
-\dot{z}=\frac{\partial}{z}z=f(z, u)=A'z+B'u
+\dot{z}=\frac{\partial}{\partial z}z=f(z, u)=A'z+B'u
 $$
 
 You can write out the matrix representation of $A'$ and $B'$. We highly recommend writing out the system of equation in the matrix form.
