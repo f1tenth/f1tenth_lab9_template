@@ -28,9 +28,9 @@ Last Modified: 12/27/22
 """
 import math
 import numpy as np
-# from numba import njit
+from numba import njit
 
-# @njit(cache=True)
+@njit(cache=True)
 def nearest_point(point, trajectory):
     """
     Return the nearest point along the given piecewise linear trajectory.
