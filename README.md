@@ -122,4 +122,6 @@ It might be helpful to visualize the current selected segment of reference path 
 - Compilation: **10** Points
 - Correct objectives and constraints: **50** Points
 - Working path tracker: **20** Points
-- Video: **20** Points
+- Videos:
+   - In sim: **10** Points
+   - On Car: **10** Points
