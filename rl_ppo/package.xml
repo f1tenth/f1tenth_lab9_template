@@ -4,7 +4,7 @@
   <name>rl_ppo</name>
   <version>0.0.0</version>
   <description>f1tenth rl_ppo</description>
-  <maintainer email="@seas.upenn.edu">student</maintainer>
+  <maintainer email="student@seas.upenn.edu">student</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

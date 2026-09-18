@@ -2,9 +2,6 @@
  * PPO Deploy Node for F1Tenth
  *
  * Runs the trained PPO policy on the physical F1TENTH car.
- * C++ scaffold that mirrors scripts/ppo_deploy_node.py — pick whichever
- * language you'd rather extend, both compute the same thing.
- * This is just a template, you are free to implement your own node!
  *
  * Requires:
  *   - ONNX Runtime C++ (https://onnxruntime.ai — install a prebuilt release,
@@ -125,7 +122,7 @@ public:
         // ═════════════════════════════════════════════════════════════════
 
         // ═════════════════════════════════════════════════════════════════
-        //   TODO 2 — Create Drive Publisher
+        //  TODO 2 — Create Drive Publisher
         // ═════════════════════════════════════════════════════════════════
         // Create a publisher that sends drive commands to the car.
         // The ackermann_mux will relay this to the VESC.

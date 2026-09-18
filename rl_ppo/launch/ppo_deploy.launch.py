@@ -4,20 +4,7 @@ ppo_deploy.launch.py
 ====================
 Launches the trained PPO policy on the physical F1TENTH car.
 
-STEP-BY-STEP (do these in order):
-
-  STEP 1 — On your PC, export the trained model:
-      python3 export_ppo_onnx.py --model models/best/best_model.zip --map my_map5
-      → produces deploy/ppo_policy.onnx + deploy/ppo_deploy_config.json
-
-  STEP 2 — Copy both files to the car:
-      scp deploy/ppo_policy.onnx deploy/ppo_deploy_config.json \\
-          nvidia@<car-ip>:~/f1tenth_ws/src/rl_ppo/scripts/
-
-  STEP 3 — Build on the car:
-      cd ~/f1tenth_ws
-      colcon build --packages-select rl_ppo
-      source install/setup.bash
+STEP-BY-STEP:
 
   STEP 4 — Terminal 1: bring up the car stack (lidar + VESC + mux + joy):
       ros2 launch f1tenth_stack bringup_launch.py

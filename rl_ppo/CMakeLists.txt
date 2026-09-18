@@ -30,48 +30,61 @@ foreach(PACKAGE
 
 endforeach()
 
-find_package(nlohmann_json REQUIRED)
+# The C++ deploy node is optional — the Python scaffold (scripts/ppo_deploy_node.py)
+# covers the same lab requirement and only needs `pip install onnxruntime`.
+# nlohmann_json and ONNX Runtime's C++ package are not ROS packages, so
+# rosdep/colcon can't auto-install them: probe for both without REQUIRED, and
+# skip building the C++ node (with a warning, not a build failure) if either
+# is missing. Install them and re-run colcon build to opt in:
+#   sudo apt install nlohmann-json3-dev
+#   ONNX Runtime C++ from https://github.com/microsoft/onnxruntime/releases
+#   (extract it and add it to CMAKE_PREFIX_PATH — no apt package exists for it)
+find_package(nlohmann_json QUIET)
 
-# ONNX Runtime does not ship a standard CMake find-module, so locate it
-# manually. Install via `sudo apt install libonnxruntime-dev` if your distro
-# packages it, or point CMAKE_PREFIX_PATH at an extracted release from
-# https://github.com/microsoft/onnxruntime/releases
 find_path(ONNXRUNTIME_INCLUDE_DIR onnxruntime_cxx_api.h
   PATH_SUFFIXES onnxruntime)
 find_library(ONNXRUNTIME_LIB onnxruntime)
-if(NOT ONNXRUNTIME_INCLUDE_DIR OR NOT ONNXRUNTIME_LIB)
-  message(FATAL_ERROR "onnxruntime not found - install libonnxruntime-dev, or "
-                       "extract a release from https://github.com/microsoft/"
-                       "onnxruntime/releases and add it to CMAKE_PREFIX_PATH")
+
+if(nlohmann_json_FOUND AND ONNXRUNTIME_INCLUDE_DIR AND ONNXRUNTIME_LIB)
+  set(BUILD_CPP_DEPLOY_NODE TRUE)
+else()
+  set(BUILD_CPP_DEPLOY_NODE FALSE)
+  message(WARNING
+    "Skipping C++ ppo_deploy_node (nlohmann_json and/or ONNX Runtime C++ not "
+    "found) — this is expected if you're using the Python node instead. To "
+    "build the C++ scaffold, install nlohmann-json3-dev and ONNX Runtime C++ "
+    "(see comment above), then re-run colcon build.")
 endif()
 
-# Include Cpp "include" directory
-include_directories(include)
-include_directories(
-  ${EIGEN3_INCLUDE_DIRS}
-  ${ONNXRUNTIME_INCLUDE_DIR}
-)
+if(BUILD_CPP_DEPLOY_NODE)
+  # Include Cpp "include" directory
+  include_directories(include)
+  include_directories(
+    ${EIGEN3_INCLUDE_DIRS}
+    ${ONNXRUNTIME_INCLUDE_DIR}
+  )
 
-# Create Cpp executable
-add_executable(ppo_deploy_node src/ppo_deploy_node.cpp)
+  # Create Cpp executable
+  add_executable(ppo_deploy_node src/ppo_deploy_node.cpp)
 
-target_include_directories(ppo_deploy_node PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-  ${EIGEN3_INCLUDE_DIRS}
-  ${ONNXRUNTIME_INCLUDE_DIR}
-)
+  target_include_directories(ppo_deploy_node PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+    ${EIGEN3_INCLUDE_DIRS}
+    ${ONNXRUNTIME_INCLUDE_DIR}
+  )
 
-ament_target_dependencies(ppo_deploy_node
-  rclcpp geometry_msgs ackermann_msgs nav_msgs sensor_msgs std_msgs visualization_msgs tf2 tf2_ros
-)
+  ament_target_dependencies(ppo_deploy_node
+    rclcpp geometry_msgs ackermann_msgs nav_msgs sensor_msgs std_msgs visualization_msgs tf2 tf2_ros
+  )
 
-target_link_libraries(ppo_deploy_node ${ONNXRUNTIME_LIB} nlohmann_json::nlohmann_json)
+  target_link_libraries(ppo_deploy_node ${ONNXRUNTIME_LIB} nlohmann_json::nlohmann_json)
 
-# Install Cpp executables
-install(TARGETS
-  ppo_deploy_node
-  DESTINATION lib/${PROJECT_NAME})
+  # Install Cpp executables
+  install(TARGETS
+    ppo_deploy_node
+    DESTINATION lib/${PROJECT_NAME})
+endif()
 
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})

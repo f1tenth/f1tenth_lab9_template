@@ -2,8 +2,8 @@
 """
 ppo_deploy_node.py
 ==================
-Runs the trained PPO policy on the physical F1TENTH car.
-This is the real-car equivalent of what the F1TENTH gym does during training —
+
+Runs the trained PPO policy on the physical F1TENTH car —
 it reads sensors, builds the same 110-dim observation, and publishes drive commands.
 
 WHAT THIS NODE DOES (each cycle at 100 Hz):
@@ -17,16 +17,11 @@ WHAT THIS NODE DOES (each cycle at 100 Hz):
     7. Publish /drive      → AckermannDriveStamped to ackermann_mux
 
 PREREQUISITES:
-    1. Export model on PC:
-       python3 export_ppo_onnx.py --model models/best/best_model.zip --map my_map5
+    1. Export model on PC
     2. Copy to car:
        scp deploy/ppo_policy.onnx deploy/ppo_deploy_config.json nvidia@<car-ip>:~/f1tenth_ws/src/rl_ppo/scripts/
     3. Build on car:
        colcon build --packages-select rl_ppo
-
-DRIVING:
-    Hold RB to drive — same as every other autonomous mode.
-    Release RB or disconnect controller → car stops immediately.
 
 TOPICS:
     Subscribes: /scan, /odom, /sensors/servo_position_command, /joy
@@ -126,9 +121,11 @@ class PPODeployNode(Node):
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
             history=QoSHistoryPolicy.KEEP_LAST, depth=1)
 
+
         # ═════════════════════════════════════════════════════════════════
-        # ✏️  TODO 1 — Create Subscribers
+        # TODO 1 — Create Subscribers
         # ═════════════════════════════════════════════════════════════════
+        
         # Wire the node up to the car's sensor topics.
         # Each subscriber calls a callback method when a new message arrives.
         #
@@ -160,25 +157,17 @@ class PPODeployNode(Node):
         #     Callback: self._joy_cb
         #     QoS:      10
         #
-        # Reference:
-        #   self.create_subscription(MsgType, 'topic_name', self._callback, qos)
-        # ─────────────────────────────────────────────────────────────────
-        # TODO 1a: Subscribe to /scan
-        # self.create_subscription(MsgType, 'topic_name', self._callback, qos)
-
-        # TODO 1b: Subscribe to /odom
-        # self.create_subscription(MsgType, 'topic_name', self._callback, qos)
-
-        # TODO 1c: Subscribe to /sensors/servo_position_command
-        # self.create_subscription(MsgType, 'topic_name', self._callback, qos)
-
-        # TODO 1d: Subscribe to /joy
-        # self.create_subscription(MsgType, 'topic_name', self._callback, qos)
         # ═════════════════════════════════════════════════════════════════
 
+
+
+
+
+
         # ═════════════════════════════════════════════════════════════════
-        # ✏️  TODO 2 — Create Drive Publisher
+        # TODO 2 — Create Drive Publisher
         # ═════════════════════════════════════════════════════════════════
+        
         # Create a publisher that sends drive commands to the car.
         # The ackermann_mux will relay this to the VESC.
         #
@@ -189,12 +178,13 @@ class PPODeployNode(Node):
         #     QoS depth: 10
         #
         # Store it as self.drive_pub so _publish_drive() can use it.
-        #
-        # Reference:
-        #   self.drive_pub = self.create_publisher(MsgType, 'topic_name', depth)
         # ─────────────────────────────────────────────────────────────────
         # TODO 2: create self.drive_pub
-        # self.drive_pub = self.create_publisher(MsgType, 'topic_name', depth)
+        
+        
+        
+        
+        
         # ═════════════════════════════════════════════════════════════════
 
         # ── Control timer — runs _control_cb at 100 Hz ───────────────────
@@ -256,7 +246,7 @@ class PPODeployNode(Node):
         beams = ranges[self.beam_idx]
 
         # ═════════════════════════════════════════════════════════════════
-        # ✏️  TODO 3 — Normalize the Observation
+        # TODO 3 — Normalize the Observation
         # ═════════════════════════════════════════════════════════════════
         # The policy was trained on observations normalized to [0, 1].
         # If you pass raw values here, the policy sees completely different
@@ -265,16 +255,12 @@ class PPODeployNode(Node):
         # You need to normalize 3 things — same formulas as training:
         #
         # (a) Lidar beams — clip to max range then divide
-        #     Hint: np.clip(beams, 0.0, self.lidar_clip) / self.lidar_clip
         #
         # (b) Speed — divide by max speed, clip to [0, 1]
         #     self.speed_meas is in m/s, self.max_speed is the training limit
-        #     Hint: np.clip(self.speed_meas / self.max_speed, 0.0, 1.0)
         #
         # (c) Steering angle — map [−max_steer, +max_steer] → [0, 1]
         #     self.steer_echo is in radians, self.max_steer is the limit
-        #     Hint: same formula as _process_obs in the training wrapper:
-        #           (steer + max_steer) / (2 * max_steer), clipped to [0, 1]
         #
         # Finally concatenate: [beams_normalized, speed_n, steer_n]
         # Return shape must be (110,) as float32
@@ -282,6 +268,11 @@ class PPODeployNode(Node):
         # TODO 3a: clip and normalize lidar beams to [0, 1]
         # TODO 3b: normalize speed to [0, 1]
         # TODO 3c: normalize steering angle to [0, 1]
+
+
+
+
+
 
         return np.concatenate([beams, [speed_n, steer_n]]).astype(np.float32)
         # ═════════════════════════════════════════════════════════════════
