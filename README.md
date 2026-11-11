@@ -9,7 +9,7 @@
 
 ## II. Overview
 
-In this lab you'll train a PPO agent to drive the F1TENTH car in simulation, then deploy the trained policy on the real car.
+In this lab you'll train a policy network with PPO to drive the F1TENTH car in simulation, then deploy the trained policy on the real car.
 
 ### a. Problem Formulation
 
@@ -23,7 +23,7 @@ We treat driving as a Markov Decision Process:
 Train your PPO agent in simulation using the Colab notebook in [`resources/`](resources/):
 - `PPO_from_Scratch_LearnToDrive_Student.ipynb`
 
-This walks through setting up the F1TENTH gym environment, defining the observation/reward, and implementing PPO from scratch in PyTorch (Stable-Baselines3 is used only for its `VecEnv` utilities — parallel rollouts and reward normalization — not for the PPO algorithm itself). Training saves two files under `models_scratch/`: `ppo_scratch.pt` (the policy weights) and `vecnormalize.pkl` (reward-normalization stats).
+This walks through setting up the F1TENTH gym environment, defining the observation/reward, and implementing PPO from scratch in PyTorch. Training saves two files under `models_scratch/`: `ppo_scratch.pt` (the policy weights) and `vecnormalize.pkl` (reward-normalization stats).
 
 ### c. Deployment
 
@@ -34,7 +34,7 @@ Once you have a trained policy, deploy it on the car using the `rl_ppo` package:
    unzip models_archive.zip -d models_archive
    # -> models_archive/content/models_scratch/ppo_scratch.pt (+ vecnormalize.pkl)
    ```
-2. **Export** — on that same PC, install the export script's Python deps once, then run it (use a venv, as below, so pip doesn't upgrade the system `setuptools` that ROS/colcon relies on) to convert `ppo_scratch.pt` to ONNX and write out `ppo_policy.onnx` + `ppo_deploy_config.json`:
+2. **Export** — Use a venv to install the export script's Python dependencies, then run it to convert `ppo_scratch.pt` to ONNX and write out `ppo_policy.onnx` + `ppo_deploy_config.json`:
    ```
    python3 -m venv ~/rl_export_venv && source ~/rl_export_venv/bin/activate
    pip install torch onnx onnxruntime
@@ -48,18 +48,18 @@ Once you have a trained policy, deploy it on the car using the `rl_ppo` package:
    scp deploy/ppo_policy.onnx deploy/ppo_deploy_config.json \
        nvidia@<car-ip>:~/f1tenth_ws/src/rl_ppo/scripts/
    ```
-4. **Install build dependencies on the car** — only if you're using the **C++** deploy node (`rl_ppo/src/ppo_deploy_node.cpp`). **Skip this step entirely if you're using the Python node** — it only needs `pip install onnxruntime` on the car, nothing else.
+4. **Install build dependencies on the car** — only if you're using the **C++** deploy node (`rl_ppo/src/ppo_deploy_node.cpp`). **Skip this step if you're using Python** — it only needs `pip install onnxruntime` on the car.
    ```
    sudo apt install nlohmann-json3-dev
    ```
-   ONNX Runtime's C++ package isn't in the Ubuntu/ROS apt repos, so install it manually:
+   Install ONNX Runtime's C++ package:
    ```
    cd ~
    wget https://github.com/microsoft/onnxruntime/releases/download/v1.17.1/onnxruntime-linux-x64-1.17.1.tgz
    tar xzf onnxruntime-linux-x64-1.17.1.tgz
    export CMAKE_PREFIX_PATH=~/onnxruntime-linux-x64-1.17.1:$CMAKE_PREFIX_PATH
    ```
-   Add the `export CMAKE_PREFIX_PATH=...` line to your `~/.bashrc` so it's set for every future build. (If these aren't installed, `colcon build` below just skips building the C++ node with a warning — it won't fail.)
+   Add the `export CMAKE_PREFIX_PATH=...` line to your `~/.bashrc` to set it for future builds.
 5. **Build**:
    ```
    cd ~/f1tenth_ws
@@ -77,8 +77,8 @@ Once you have a trained policy, deploy it on the car using the `rl_ppo` package:
 
 ## VIII: Grading Rubric
 - Compilation: **10** Points
-- Correct MDP formulation and working training pipeline: **50** Points
-- Working deployment node (completed TODOs): **20** Points
+- Correct MDP formulation and working training pipeline: **40** Points
+- Working deployment node (completed TODOs): **30** Points
 - Videos:
    - In sim: **10** Points
    - On Car: **10** Points
