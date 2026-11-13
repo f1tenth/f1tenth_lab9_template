@@ -93,6 +93,7 @@ ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
   scripts/ppo_deploy_node.py
   scripts/export_ppo_onnx.py
+  scripts/sim_car.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
